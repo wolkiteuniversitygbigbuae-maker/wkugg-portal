@@ -1,0 +1,23 @@
+{
+  "name": "ወልቂጤ ዩኒቨርሲቲ ግቢ ጉባኤ",
+  "short_name": "WKU-GG",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0B1D3A",
+  "theme_color": "#0B1D3A",
+  "icons": [
+    {
+      "src": "logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
