@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0B1D3A">
+<title>ወልቂጤ ዩኒቨርሲቲ ግቢ ጉባኤ — ዲጂታል ፖርታል</title>
+<style>
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface-soft: rgba(11, 25, 44, 0.035);
+    --ink: #0B192C;
+    --ink-soft: #5C6B80;
+    --navy: #0B1D3A;
+    --navy-deep: #061022;
+    --gold: #B68D2C;
+    --gold-light: #E4C36A;
+    --gold-tint: rgba(182, 141, 44, 0.11);
+    --line: rgba(11, 25, 44, 0.08);
+    --emerald: #0E7C5B;
+    --crimson: #9F243B;
+    --radius: 16px;
+    --shadow: 0 10px 28px rgba(8, 20, 40, 0.055);
+  }
+  [data-theme="dark"] {
+    --bg: #070E1B;
+    --surface: #0D182C;
+    --surface-soft: rgba(255, 255, 255, 0.045);
+    --ink: #F2F5FA;
+    --ink-soft: #94A3B8;
+    --line: rgba(255, 255, 255, 0.08);
+    --gold-tint: rgba(228, 195, 106, 0.13);
+    --shadow: 0 16px 36px rgba(0, 0, 0, 0.42);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Ethiopic", Roboto, sans-serif;
+    background: var(--bg); color: var(--ink);
+    min-height: 100vh;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    transition: background 0.25s ease, color 0.25s ease;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 30;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .brand-emblem {
+    width: 36px; height: 36px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+    background: var(--navy); color: var(--gold-light);
+    border: 1.5px solid rgba(228, 195, 106, 0.45);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .brand-emblem img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .brand-title { font-size: 13.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand-sub { font-size: 10.5px; color: var(--ink-soft); font-weight: 500; }
+  .top-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--surface);
+    color: var(--ink); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.15s;
+  }
+  .icon-btn:active { transform: scale(0.92); }
+  .status-dot {
+    font-size: 10px; font-weight: 700; padding: 4px 9px; border-radius: 99px;
+    background: var(--gold-tint); color: var(--gold); letter-spacing: 0.3px;
+  }
+
+  .container { max-width: 680px; margin: 0 auto; padding: 20px 18px 0; }
+  .view { display: none; animation: fadeUp 0.24s ease; }
+  .view.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .hero { margin-bottom: 18px; }
+  .eth-date { font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 0.4px; margin-bottom: 3px; }
+  .hero h1 { font-size: clamp(19px, 5vw, 23px); font-weight: 800; letter-spacing: -0.2px; line-height: 1.3; }
+  .hero-meta { font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; }
+
+  .att-ribbon {
+    display: none; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--navy); color: #fff;
+    padding: 13px 16px; border-radius: 14px; margin-bottom: 18px;
+    border-left: 3px solid var(--gold-light); cursor: pointer;
+  }
+  .att-ribbon .pulse {
+    width: 8px; height: 8px; border-radius: 50%; background: #34D399;
+    box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.25); flex-shrink: 0;
+  }
+
+  .id-scene { perspective: 1200px; margin-bottom: 20px; }
+  .id-flipper {
+    display: grid; width: 100%;
+    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    transform-style: preserve-3d; cursor: pointer;
+  }
+  .id-flipper.flipped { transform: rotateY(180deg); }
+  .id-face {
+    grid-area: 1 / 1; position: relative;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    border-radius: 18px; padding: 17px 18px; overflow: hidden;
+    background: linear-gradient(135deg, #09172E 0%, #10284D 58%, #071122 100%);
+    color: #F8FAFC; border: 1px solid rgba(228, 195, 106, 0.42);
+    box-shadow: 0 16px 34px rgba(6, 16, 34, 0.24);
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .id-face::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(circle at 86% 14%, rgba(228, 195, 106, 0.18), transparent 50%);
+  }
+  .id-back { transform: rotateY(180deg); background: linear-gradient(145deg, #071224 0%, #122647 100%); }
+  .watermark {
+    position: absolute; right: -14px; bottom: -18px; width: 136px; height: 136px;
+    opacity: 0.055; color: var(--gold-light); pointer-events: none;
+  }
+  .id-top {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    border-bottom: 1px solid rgba(228, 195, 106, 0.22); padding-bottom: 10px;
+  }
+  .id-top-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .id-logo {
+    width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+    border: 1.5px solid var(--gold-light); background: #fff; display: none;
+  }
+  .id-org { font-size: 9.5px; color: var(--gold-light); font-weight: 700; letter-spacing: 0.25px; }
+  .id-main-t { font-size: 12.5px; font-weight: 800; color: #fff; line-height: 1.25; margin-top: 1px; }
+  .id-badge {
+    font-size: 10px; font-weight: 800; color: #061022; background: var(--gold-light);
+    padding: 3px 8px; border-radius: 6px; letter-spacing: 0.4px; flex-shrink: 0;
+  }
+  .id-body { display: grid; grid-template-columns: 1fr 118px; gap: 14px; align-items: center; margin: 13px 0; }
+  .id-name { font-size: clamp(15px, 4.2vw, 17px); font-weight: 800; color: #fff; margin-bottom: 6px; line-height: 1.3; }
+  .id-line { font-size: 11.5px; color: rgba(248, 250, 252, 0.85); margin-bottom: 3px; line-height: 1.4; }
+  .id-line b { color: var(--gold-light); font-weight: 600; }
+  .qr-box {
+    background: #fff; padding: 6px; border-radius: 12px;
+    width: 118px; height: 118px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+    position: relative; transition: transform 0.15s;
+  }
+  .qr-box:active { transform: scale(0.95); }
+  .qr-box img { width: 106px; height: 106px; display: block; }
+  .qr-zoom-hint {
+    position: absolute; bottom: -7px; right: 6px;
+    background: var(--gold); color: #061022; font-size: 8.5px; font-weight: 800;
+    padding: 1px 6px; border-radius: 99px;
+  }
+  .id-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 10px; color: rgba(228, 195, 106, 0.88);
+    border-top: 1px solid rgba(255, 255, 255, 0.09); padding-top: 8px;
+  }
+
+  .quick-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 24px; padding: 6px 0; }
+  .q-pill {
+    background: transparent; border: 0; padding: 6px 4px; text-align: center;
+    font-size: 11px; font-weight: 700; color: var(--ink);
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 7px;
+  }
+  .q-ico {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold); box-shadow: 0 4px 12px rgba(11, 25, 44, 0.05);
+    transition: transform 0.15s, background 0.15s;
+  }
+  .q-pill:active .q-ico { transform: scale(0.92); background: var(--gold-tint); }
+  .q-ico svg { width: 18px; height: 18px; }
+
+  .sec-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin: 24px 0 8px; padding-bottom: 7px; border-bottom: 1px solid var(--line);
+  }
+  .sec-title { font-size: 11.5px; font-weight: 800; color: var(--gold); letter-spacing: 0.65px; }
+  .sec-sub { font-size: 11px; color: var(--ink-soft); font-weight: 600; }
+
+  .ledger {
+    background: var(--surface); border-radius: var(--radius);
+    border: 1px solid var(--line); overflow: hidden; box-shadow: var(--shadow);
+  }
+  .ledger-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 14px;
+    padding: 14px 16px; border-bottom: 1px solid var(--line);
+  }
+  .ledger-row:last-child { border-bottom: 0; }
+  .l-key { font-size: 12.5px; color: var(--ink-soft); font-weight: 500; flex-shrink: 0; }
+  .l-val { font-size: 13.5px; font-weight: 700; color: var(--ink); text-align: right; word-break: break-word; }
+  .l-val.accent { color: var(--gold); }
+  .copyable { cursor: pointer; }
+
+  .seg { display: flex; border-bottom: 1px solid var(--line); margin-bottom: 16px; gap: 6px; }
+  .seg button {
+    flex: 1; border: 0; background: transparent; color: var(--ink-soft);
+    font-size: 12.5px; font-weight: 700; padding: 11px 4px;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; transition: 0.2s;
+  }
+  .seg button.active { color: var(--ink); border-bottom-color: var(--gold); }
+
+  .person-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 16px; border-bottom: 1px solid var(--line);
+  }
+  .person-row:last-child { border-bottom: 0; }
+  .p-info { min-width: 0; flex: 1; }
+  .p-name { font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.35; }
+  .p-sub { font-size: 12px; color: var(--ink-soft); margin-top: 2px; line-height: 1.4; }
+  .call-chip {
+    flex-shrink: 0; text-decoration: none; font-size: 11.5px; font-weight: 700;
+    color: var(--navy); background: var(--gold-tint); padding: 6px 12px; border-radius: 99px; border: 0;
+  }
+  [data-theme="dark"] .call-chip { color: var(--gold-light); }
+
+  .kpi-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); margin-bottom: 18px; overflow: hidden;
+  }
+  .kpi-cell { padding: 13px 8px; text-align: center; border-right: 1px solid var(--line); }
+  .kpi-cell:last-child { border-right: 0; }
+  .kpi-num { font-size: 19px; font-weight: 800; color: var(--ink); line-height: 1.2; }
+  .kpi-lbl { font-size: 10px; color: var(--ink-soft); font-weight: 600; margin-top: 3px; }
+
+  .search-input {
+    width: 100%; background: var(--surface); border: 1px solid var(--line);
+    color: var(--ink); padding: 12px 14px; border-radius: 12px;
+    font-size: 13.5px; outline: none; margin-bottom: 12px;
+  }
+  .search-input:focus { border-color: var(--gold); }
+  .filter-pills { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px; scrollbar-width: none; }
+  .filter-pills::-webkit-scrollbar { display: none; }
+  .f-pill {
+    flex-shrink: 0; border: 1px solid var(--line); background: transparent;
+    color: var(--ink-soft); font-size: 11.5px; font-weight: 700;
+    padding: 6px 13px; border-radius: 99px; cursor: pointer;
+  }
+  .f-pill.active { background: var(--navy); color: var(--gold-light); border-color: var(--navy); }
+
+  .prog-track { height: 5px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+  .prog-fill { height: 100%; background: var(--gold); border-radius: 99px; transition: width 0.35s ease; }
+
+  .skel {
+    height: 14px; border-radius: 6px; width: 65%;
+    background: linear-gradient(90deg, var(--line) 25%, var(--surface-soft) 50%, var(--line) 75%);
+    background-size: 200% 100%; animation: shimmer 1.2s infinite;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  .dock {
+    position: fixed; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    left: 50%; transform: translateX(-50%);
+    width: calc(100% - 28px); max-width: 440px; z-index: 40;
+    background: color-mix(in srgb, var(--navy-deep) 94%, transparent);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(228, 195, 106, 0.22);
+    border-radius: 22px; padding: 6px 8px;
+    display: flex; justify-content: space-around;
+    box-shadow: 0 14px 34px rgba(6, 16, 34, 0.32);
+  }
+  .dock-btn {
+    background: none; border: 0; color: rgba(248, 250, 252, 0.56);
+    font-size: 10.5px; font-weight: 700; padding: 7px 14px; border-radius: 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; transition: 0.2s;
+  }
+  .dock-btn.active { color: var(--gold-light); background: rgba(228, 195, 106, 0.14); }
+  .dock-btn svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.8; fill: none; }
+
+  .sheet-backdrop {
+    position: fixed; inset: 0; z-index: 60; background: rgba(6, 16, 34, 0.58);
+    backdrop-filter: blur(4px); display: none; align-items: flex-end; justify-content: center;
+  }
+  .sheet-backdrop.open { display: flex; }
+  .sheet {
+    width: 100%; max-width: 560px; background: var(--surface);
+    border-radius: 24px 24px 0 0; padding: 16px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+    border-top: 2px solid var(--gold); animation: slideUp 0.22s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(36px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .sheet-handle { width: 38px; height: 4px; background: var(--line); border-radius: 99px; margin: 0 auto 14px; }
+  .btn-primary {
+    width: 100%; padding: 13px; border-radius: 12px; border: 0;
+    background: var(--navy); color: var(--gold-light);
+    font-size: 13.5px; font-weight: 800; cursor: pointer; margin-top: 8px;
+  }
+  .btn-outline {
+    width: 100%; padding: 11px; border-radius: 12px;
+    background: transparent; border: 1px solid var(--line); color: var(--ink);
+    font-size: 12.5px; font-weight: 700; cursor: pointer; margin-top: 8px;
+  }
+  .toast {
+    position: fixed; top: 68px; left: 50%; transform: translateX(-50%);
+    background: var(--navy); color: #fff; padding: 10px 18px; border-radius: 99px;
+    font-size: 12px; font-weight: 700; z-index: 80; display: none; white-space: nowrap;
+    border: 1px solid var(--gold-light); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin: 10px 0; font-size: 12.5px; font-weight: 600; }
+  textarea.search-input { min-height: 92px; resize: vertical; font-family: inherit; }
+
+  @media (max-width: 600px) {
+    .container { padding: 16px 16px 0; }
+    .ledger { background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+    .ledger-row, .person-row { padding: 14px 2px; border-bottom: 1px solid var(--line); }
+    .adm-att-panel {
+      background: var(--surface-soft); border-radius: 14px; padding: 14px !important;
+      margin-bottom: 16px; border: 1px solid var(--line);
+    }
+    .kpi-bar { background: transparent; border-left: 0; border-right: 0; border-radius: 0; }
+    .id-face { padding: 15px 15px; border-radius: 16px; }
+    .id-body { grid-template-columns: 1fr 106px; gap: 11px; margin: 11px 0; }
+    .qr-box { width: 106px; height: 106px; padding: 5px; }
+    .qr-box img { width: 96px; height: 96px; }
+    .id-logo { width: 34px; height: 34px; }
+    .id-main-t { font-size: 11.5px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-emblem">
+      <img id="topLogoImg" alt="WKU-GG">
+      <svg id="topLogoFallback" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 2v20M2 12h20M9 4h6M9 20h6M4 9v6M20 9v6M8.5 8.5l7 7M15.5 8.5l-7 7"/>
+      </svg>
+    </div>
+    <div style="min-width:0">
+      <div class="brand-title">ወልቂጤ ዩኒቨርሲቲ ግቢ ጉባኤ</div>
+      <div class="brand-sub" id="offlineTag">DIGITAL PORTAL • 2019 ዓ.ም</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <span id="rolePill" class="status-dot">...</span>
+    <button class="icon-btn" onclick="toggleTheme()" aria-label="Theme">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="container">
+
+  <section id="v_home" class="view active">
+    <div class="hero">
+      <div class="eth-date" id="ethDateStr">☧ ኢትዮጵያ</div>
+      <h1 id="heroGreeting">እንኳን በሰላም መጡ</h1>
+      <div class="hero-meta" id="heroSub">መረጃዎ ከመዝገቡ በመጫን ላይ ነው...</div>
+    </div>
+
+    <div id="attRibbon" class="att-ribbon" onclick="openSheet('sheet_att')">
+      <div style="display:flex;align-items:center;gap:11px">
+        <div class="pulse"></div>
+        <div>
+          <div style="font-size:12.5px;font-weight:800" id="attRibbonTitle">የጉባኤ አቴንዳንስ ክፍት ነው</div>
+          <div style="font-size:11px;opacity:0.8">ለመመዝገብ እዚህ ይጫኑ</div>
+        </div>
+      </div>
+      <span style="font-size:11.5px;font-weight:800;color:var(--gold-light)">መዝግብ ▸</span>
+    </div>
+
+    <div class="id-scene">
+      <div id="idFlipper" class="id-flipper" onclick="this.classList.toggle('flipped')">
+        <div class="id-face">
+          <svg class="watermark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <path d="M12 2v20M2 12h20M8 4h8M8 20h8M4 8v8M20 8v8"/>
+          </svg>
+          <div class="id-top">
+            <div class="id-top-left">
+              <img id="idCardLogo" class="id-logo" alt="Logo">
+              <div style="min-width:0">
+                <div class="id-org">በኢ/ኦ/ተ/ቤ/ክ ማኅበረ ቅዱሳን</div>
+                <div class="id-main-t">የወልቂጤ ዩኒቨርሲቲ ግቢ ጉባኤ መታወቂያ</div>
+              </div>
+            </div>
+            <div class="id-badge" id="cardIdBadge">WKU-GG</div>
+          </div>
+          <div class="id-body">
+            <div style="min-width:0">
+              <div class="id-name" id="cardName">በመጫን ላይ...</div>
+              <div class="id-line"><b>ዲፓርትመንት፦</b> <span id="cardDept">-</span></div>
+              <div class="id-line"><b>የንስሐ አባት፦</b> <span id="cardFather">-</span></div>
+              <div class="id-line"><b>ቤተሰብ / ሚና፦</b> <span id="cardFam">-</span></div>
+            </div>
+            <div class="qr-box" onclick="event.stopPropagation(); openSheet('sheet_qr')">
+              <img id="cardQrImg" alt="QR">
+              <span class="qr-zoom-hint">አስፋ ⤢</span>
+            </div>
+          </div>
+          <div class="id-foot">
+            <span id="cardPhone">-</span>
+            <span>ጀርባውን ለማየት ካርዱን ይንኩ ↻</span>
+          </div>
+        </div>
+
+        <div class="id-face id-back">
+          <div class="id-top">
+            <div class="id-top-left">
+              <img id="idCardLogoBack" class="id-logo" alt="Logo">
+              <div>
+                <div class="id-org">የመዋቅር እና የድጋፍ መረጃ</div>
+                <div class="id-main-t">መንፈሳዊ ቤተሰብ እና ተጠሪዎች</div>
+              </div>
+            </div>
+            <div class="id-badge">2019 ዓ.ም</div>
+          </div>
+          <div style="font-size:12px;line-height:1.75;margin:10px 0">
+            <div class="id-line"><b>የቤተሰብ አባት፦</b> <span id="backFamFather">-</span></div>
+            <div class="id-line"><b>የቤተሰብ እናት፦</b> <span id="backFamMother">-</span></div>
+            <div class="id-line"><b>የዲፓርትመንት ቲም፦</b> <span id="backTeam">-</span></div>
+            <div class="id-line"><b>ብሎክ እና ዶርም፦</b> <span id="backDorm">-</span></div>
+            <div class="id-line" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.1)">
+              <b>ተጠሪዎች፦</b> <span id="backCare">-</span>
+            </div>
+          </div>
+          <div class="id-foot">
+            <span>ወልቂጤ ዩኒቨርሲቲ ግቢ ጉባኤ</span>
+            <span>ወደ ፊት ለመመለስ ይንኩ ↻</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-strip">
+      <button class="q-pill" onclick="openSheet('sheet_qr')">
+        <span class="q-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg></span>
+        <span>QR አስፋ</span>
+      </button>
+      <button class="q-pill" onclick="openSheet('sheet_ask')">
+        <span class="q-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        <span>ጥያቄ/ምክክር</span>
+      </button>
+      <button class="q-pill" onclick="openSheet('sheet_att')">
+        <span class="q-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+        <span>አቴንዳንስ</span>
+      </button>
+      <button class="q-pill" onclick="saveOfflineSnapshot()">
+        <span class="q-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg></span>
+        <span>Offline</span>
+      </button>
+    </div>
+
+    <div class="sec-head">
+      <span class="sec-title">የአባል ሙሉ ማህደር</span>
+      <span class="sec-sub" id="dossierCampusId"></span>
+    </div>
+    <div id="dossierLedger" class="ledger">
+      <div class="ledger-row"><div class="skel"></div></div>
+      <div class="ledger-row"><div class="skel" style="width:45%"></div></div>
+      <div class="ledger-row"><div class="skel" style="width:75%"></div></div>
+    </div>
+  </section>
+
+  <section id="v_comm" class="view">
+    <div class="sec-head" style="margin-top:0">
+      <span class="sec-title">መንፈሳዊ ኅብረት እና መዋቅር</span>
+      <span class="sec-sub" id="commCount"></span>
+    </div>
+    <div class="seg">
+      <button class="active" onclick="switchComm('FAM', this)">የንስሐ ቤተሰቤ</button>
+      <button onclick="switchComm('TEAM', this)">የዲፓርትመንት ቲሜ</button>
+      <button onclick="switchComm('DORM', this)">ብሎክ እና ዶርም</button>
+    </div>
+    <div id="commHeaderBox"></div>
+    <div id="commList" class="ledger"></div>
+  </section>
+
+  <section id="v_learn" class="view">
+    <div class="sec-head" style="margin-top:0">
+      <span class="sec-title">የትምህርት እና የጥናት ማዕከል</span>
+      <span class="sec-sub" id="learnProgressLbl"></span>
+    </div>
+    <div class="seg">
+      <button class="active" onclick="switchLearn('ACAD', this)">1ኛ ዓመት / ሬሜዲያል</button>
+      <button onclick="switchLearn('LMS', this)">Telegraph ኮርሶች</button>
+    </div>
+    <div id="learnControls"></div>
+    <div id="learnList" class="ledger"></div>
+  </section>
+
+  <section id="v_admin" class="view">
+    <div class="sec-head" style="margin-top:0">
+      <span class="sec-title">SUPER-ADMIN COMMAND</span>
+      <span class="sec-sub" id="admCountLbl">0</span>
+    </div>
+    <div id="admKpiStrip" class="kpi-bar"></div>
+
+    <div class="ledger adm-att-panel" style="padding:14px 16px;margin-bottom:16px">
+      <div style="font-size:11.5px;font-weight:800;color:var(--gold);margin-bottom:8px">የጉባኤ አቴንዳንስ መቆጣጠሪያ</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <input id="admAttTitle" class="search-input" style="margin:0" placeholder="የመርሐ ግብር ስም">
+        <input id="admAttCode" class="search-input" style="margin:0" placeholder="ኮድ (WKU19 / OFF)">
+      </div>
+      <button class="btn-primary" onclick="adminSaveAttendance()">አቴንዳንስ ክፈት / ዝጋ</button>
+    </div>
+
+    <input id="admSearch" class="search-input" placeholder="ስም፣ ስልክ፣ WKU-GG ID፣ ንስሐ አባት፣ ቤተሰብ ወይም ብሎክ/ዶርም..." oninput="renderAdminList()">
+    <div class="filter-pills">
+      <button class="f-pill active" onclick="setAdmFilter('ALL', this)">ሁሉም</button>
+      <button class="f-pill" onclick="setAdmFilter('FRESH', this)">1ኛ ዓመት/ሬሜዲያል</button>
+      <button class="f-pill" onclick="setAdmFilter('GC', this)">ተመራቂ (GC)</button>
+      <button class="f-pill" onclick="setAdmFilter('GAP', this)">ምደባ የሚቀራቸው</button>
+    </div>
+    <div id="admList" class="ledger"></div>
+  </section>
+
+</main>
+
+<nav class="dock">
+  <button class="dock-btn active" onclick="openTab('v_home', this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h6M7 14h4"/></svg>
+    <span>መታወቂያ</span>
+  </button>
+  <button class="dock-btn" onclick="openTab('v_comm', this)">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>ኅብረት</span>
+  </button>
+  <button class="dock-btn" onclick="openTab('v_learn', this)">
+    <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    <span>ትምህርት</span>
+  </button>
+  <button id="dockAdmin" class="dock-btn" style="display:none" onclick="openTab('v_admin', this)">
+    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span>አድሚን</span>
+  </button>
+</nav>
+
+<div id="sheet_ask" class="sheet-backdrop" onclick="if(event.target===this)closeSheets()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div style="font-size:15px;font-weight:800;margin-bottom:4px">ሚስጥራዊ ጥያቄ እና ምክክር</div>
+    <div style="font-size:12px;color:var(--ink-soft);margin-bottom:12px">ምላሹ በቀጥታ በቴሌግራም ቦቱ ይደርስዎታል።</div>
+    <select id="askCat" class="search-input">
+      <option value="QNA|የዕቅበተ እምነት / ሃይማኖት ጥያቄ">የዕቅበተ እምነት / ሃይማኖት ጥያቄ</option>
+      <option value="COUN|መንፈሳዊና የሥነ-ልቦና ምክክር">መንፈሳዊና የሥነ-ልቦና ምክክር</option>
+      <option value="COUN|የትምህርትና የቲቶሪያል ድጋፍ">የትምህርትና የቲቶሪያል ድጋፍ</option>
+      <option value="FB|በግቢ ጉባኤው አገልግሎት ላይ አስተያየት">በግቢ ጉባኤው አገልግሎት ላይ አስተያየት</option>
+    </select>
+    <textarea id="askBody" class="search-input" placeholder="ጥያቄዎን ወይም ሐሳብዎን እዚህ ይጻፉ..."></textarea>
+    <label class="toggle-row">
+      <span>ስሜና ስልኬ ሳይታይ በሚስጥር ይላክ (Anonymous)</span>
+      <input type="checkbox" id="askAnon" checked style="width:18px;height:18px;accent-color:var(--gold)">
+    </label>
+    <button class="btn-primary" onclick="submitInquiry()">መልእክቱን ላክ</button>
+    <button class="btn-outline" onclick="closeSheets()">ዝጋ</button>
+  </div>
+</div>
+
+<div id="sheet_att" class="sheet-backdrop" onclick="if(event.target===this)closeSheets()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div style="font-size:15px;font-weight:800;margin-bottom:4px" id="attSheetTitle">የጉባኤ ዲጂታል አቴንዳንስ</div>
+    <div style="font-size:12px;color:var(--ink-soft);margin-bottom:12px">በአዳራሹ የተነገረውን የዕለቱን ሚስጥር ኮድ ያስገቡ፦</div>
+    <input id="attCodeInput" class="search-input" placeholder="የአቴንዳንስ ኮድ (ለምሳሌ WKU19)" style="text-transform:uppercase;font-weight:800;letter-spacing:1.5px;text-align:center">
+    <button class="btn-primary" onclick="submitAttendance()">አቴንዳንስ መዝግብ</button>
+    <button class="btn-outline" onclick="closeSheets()">ዝጋ</button>
+  </div>
+</div>
+
+<div id="sheet_qr" class="sheet-backdrop" onclick="if(event.target===this)closeSheets()">
+  <div class="sheet" style="text-align:center">
+    <div class="sheet-handle"></div>
+    <div style="font-size:15px;font-weight:800;margin-bottom:3px" id="qrModalName">ዲጂታል መታወቂያ QR</div>
+    <div style="font-size:12px;color:var(--ink-soft);margin-bottom:16px" id="qrModalId"></div>
+    <div style="background:#fff;padding:16px;border-radius:18px;display:inline-block;border:2px solid var(--gold);box-shadow:0 12px 30px rgba(0,0,0,0.12)">
+      <img id="qrModalImg" style="width:240px;height:240px;display:block" alt="Large QR">
+    </div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:10px">በበር ወይም በአቴንዳንስ ስካነር ፊት ይያዙት</div>
+    <button class="btn-outline" onclick="closeSheets()">ዝጋ</button>
+  </div>
+</div>
+
+<script>
+  var API_URL = "https://script.google.com/macros/s/AKfycbzcB84pn8jd3mFZgVLNLRVPqbH-xVIYMMj8hvEacUtEhcDJ0Wtfnpoy06XGJhf8VOAL/exec";
+
+  var qs = new URLSearchParams(window.location.search);
+  var P_UID = (qs.get("uid") || "").trim();
+  var P_PHONE = (qs.get("p") || qs.get("phone") || "").replace(/\D/g, "").slice(-9);
+  var P_SIG = (qs.get("sig") || "").trim();
+
+  var CACHE_KEY = "WKUGG_STANDALONE_V1_" + (P_UID || P_PHONE);
+  var STATE = { me: null, famMates: [], teamMates: [], dormMates: [], courses: [], completedKeys: {}, academicItems: [], featuredLesson: null, attendance: {}, allStudents: [], isSuperAdmin: false };
+  var CUR_LEARN = "ACAD", CUR_ADM_FILTER = "ALL";
+
+  function apiPost(payloadObj) {
+    return fetch(API_URL, {
+      method: "POST",
+      credentials: "omit",
+      redirect: "follow",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payloadObj)
+    }).then(function(r) { return r.json(); });
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function getEthiopianTodayStr() {
+    var now = new Date();
+    var gy = now.getFullYear(), gm = now.getMonth() + 1, gd = now.getDate();
+    var a = Math.floor((14 - gm) / 12), y = gy + 4800 - a, m = gm + 12 * a - 3;
+    var jdn = gd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+    var r = (jdn - 1723856) % 1461;
+    var n = (r % 365) + 365 * Math.floor(r / 1460);
+    var ey = 4 * Math.floor((jdn - 1723856) / 1461) + Math.floor(r / 365) - Math.floor(r / 1460);
+    var em = Math.floor(n / 30) + 1;
+    var ed = (n % 30) + 1;
+    var months = ["", "መስከረም", "ጥቅምት", "ኅዳር", "ታኅሣሥ", "ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "ጳጉሜን"];
+    return "☧ ዛሬ " + (months[em] || "") + " " + ed + " ቀን " + ey + " ዓ.ም";
+  }
+
+  function showToast(msg) {
+    var t = document.getElementById("toast");
+    t.textContent = msg; t.style.display = "block";
+    setTimeout(function() { t.style.display = "none"; }, 3000);
+  }
+
+  function copyFromEl(el) {
+    var txt = el.getAttribute("data-copy");
+    var label = el.getAttribute("data-label") || "መረጃ";
+    if (!txt || txt === "-") return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function() { showToast(label + " ኮፒ ተደርጓል"); });
+    }
+  }
+
+  function toggleTheme() {
+    var cur = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", cur);
+    try { localStorage.setItem("WKUGG_THEME", cur); } catch (e) {}
+  }
+
+  function openTab(id, btn) {
+    document.querySelectorAll(".view").forEach(function(v) { v.classList.remove("active"); });
+    document.querySelectorAll(".dock-btn").forEach(function(b) { b.classList.remove("active"); });
+    document.getElementById(id).classList.add("active");
+    if (btn) btn.classList.add("active");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function openSheet(id) { document.getElementById(id).classList.add("open"); }
+  function closeSheets() { document.querySelectorAll(".sheet-backdrop").forEach(function(s) { s.classList.remove("open"); }); }
+
+  function saveOfflineSnapshot() {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(STATE));
+      showToast("መታወቂያዎ እና መረጃዎ ለOffline ተቀምጧል!");
+    } catch (e) { showToast("ማስቀመጥ አልተቻለም።"); }
+  }
+
+  function applyOfficialLogo(src) {
+    if (!src) return;
+    ["idCardLogo", "idCardLogoBack", "topLogoImg"].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) { el.src = src; el.style.display = "block"; }
+    });
+    var fb = document.getElementById("topLogoFallback");
+    if (fb) fb.style.display = "none";
+  }
+
+  function updateAttendanceRibbon(att) {
+    var rib = document.getElementById("attRibbon");
+    if (att && att.active) {
+      rib.style.display = "flex";
+      document.getElementById("attRibbonTitle").textContent = (att.title || "የጉባኤ አቴንዳንስ") + " — አቴንዳንስ ክፍት ነው";
+      document.getElementById("attSheetTitle").textContent = att.title || "የጉባኤ ዲጂታል አቴንዳንስ";
+    } else {
+      rib.style.display = "none";
+      document.getElementById("attSheetTitle").textContent = "የጉባኤ ዲጂታል አቴንዳንስ";
+    }
+  }
+
+  function hydrateUI(res, fromCache) {
+    STATE = res;
+    document.getElementById("offlineTag").textContent = fromCache ? "OFFLINE MODE • የተቀመጠ መረጃ" : "DIGITAL PORTAL • LIVE SYNC";
+    document.getElementById("rolePill").textContent = res.isSuperAdmin ? "ADMIN" : (res.isVerified ? "VERIFIED" : "MEMBER");
+
+    applyOfficialLogo(res.logoSrc);
+    updateAttendanceRibbon(res.attendance);
+
+    if (res.me) {
+      var m = res.me;
+      var titleW = m.isFemale ? "እህታችን" : "ወንድማችን";
+      document.getElementById("heroGreeting").textContent = "ሰላም ውድ " + titleW + " " + m.greetName;
+      document.getElementById("heroSub").textContent = m.dept + " • " + m.year + " • " + m.gubaeId;
+
+      document.getElementById("cardIdBadge").textContent = m.gubaeId;
+      document.getElementById("cardName").textContent = m.fullName;
+      document.getElementById("cardDept").textContent = m.dept + " (" + m.year + ")";
+      document.getElementById("cardFather").textContent = m.father;
+      document.getElementById("cardFam").textContent = m.famId + " (" + m.famRole + ")";
+      document.getElementById("cardPhone").textContent = m.phone;
+
+      var qrTxt = "WKU-GG|" + m.gubaeId + "|" + m.fullName + "|" + m.phone;
+      var qrUrl = "https://quickchart.io/qr?size=340&margin=1&text=" + encodeURIComponent(qrTxt);
+      document.getElementById("cardQrImg").src = qrUrl;
+      document.getElementById("qrModalImg").src = qrUrl;
+      document.getElementById("qrModalName").textContent = m.fullName;
+      document.getElementById("qrModalId").textContent = m.gubaeId + " • " + m.phone;
+
+      document.getElementById("backFamFather").textContent = m.famFatherName + (m.famFatherPhone ? " (" + m.famFatherPhone + ")" : "");
+      document.getElementById("backFamMother").textContent = m.famMotherName + (m.famMotherPhone ? " (" + m.famMotherPhone + ")" : "");
+      document.getElementById("backTeam").textContent = m.team;
+      document.getElementById("backDorm").textContent = "ብሎክ " + m.block + " | ዶርም " + m.dorm;
+      document.getElementById("backCare").textContent = res.careContacts || "";
+
+      document.getElementById("dossierCampusId").textContent = m.campusId !== "-" ? m.campusId : "";
+      var rows = [
+        { k: "የጉባኤ መታወቂያ", v: m.gubaeId, acc: true, cp: "መታወቂያ" },
+        { k: "የንስሐ አባት", v: m.father, acc: true },
+        { k: "የቤተሰብ መለያ", v: m.famId + " (" + m.famRole + ")" },
+        { k: "የቤተሰብ አባት", v: m.famFatherName + (m.famFatherPhone ? " • " + m.famFatherPhone : "") },
+        { k: "የቤተሰብ እናት", v: m.famMotherName + (m.famMotherPhone ? " • " + m.famMotherPhone : "") },
+        { k: "የዲፓርትመንት ቲም", v: m.team },
+        { k: "ብሎክ እና ዶርም", v: "ብሎክ " + m.block + " / ዶርም " + m.dorm },
+        { k: "የአገልግሎት ክፍል", v: m.service }
+      ];
+      document.getElementById("dossierLedger").innerHTML = rows.map(function(r) {
+        if (r.cp) {
+          return '<div class="ledger-row"><span class="l-key">' + r.k + '</span><span class="l-val copyable ' + (r.acc ? 'accent' : '') + '" data-copy="' + esc(r.v) + '" data-label="' + esc(r.cp) + '" onclick="copyFromEl(this)">' + esc(r.v) + ' ❐</span></div>';
+        }
+        return '<div class="ledger-row"><span class="l-key">' + r.k + '</span><span class="l-val ' + (r.acc ? 'accent' : '') + '">' + esc(r.v) + '</span></div>';
+      }).join("");
+
+      switchComm("FAM", document.querySelector("#v_comm .seg button"));
+    } else if (!fromCache) {
+      document.getElementById("heroSub").textContent = "መዝገብዎ አልተገኘም — እባክዎ ፖርታሉን ከቴሌግራም ቦቱ እንደገና ይክፈቱ።";
+      document.getElementById("cardName").textContent = "ያልተረጋገጠ";
+      document.getElementById("dossierLedger").innerHTML = '<div style="padding:18px 4px;font-size:13px;color:var(--ink-soft)">እባክዎ በቴሌግራም ቦቱ ላይ «☧ የእኔ ማህደር እና መታወቂያ» የሚለውን ነክተው ይግቡ።</div>';
+    }
+
+    switchLearn("ACAD", document.querySelector("#v_learn .seg button"));
+
+    if (res.isSuperAdmin && res.adminStats) {
+      document.getElementById("dockAdmin").style.display = "flex";
+      var s = res.adminStats;
+      document.getElementById("admKpiStrip").innerHTML =
+        '<div class="kpi-cell"><div class="kpi-num">' + s.total + '</div><div class="kpi-lbl">ጠቅላላ</div></div>' +
+        '<div class="kpi-cell"><div class="kpi-num">' + s.botUsers + '</div><div class="kpi-lbl">ቦት ላይ</div></div>' +
+        '<div class="kpi-cell"><div class="kpi-num">' + s.gc + '</div><div class="kpi-lbl">ተመራቂ</div></div>' +
+        '<div class="kpi-cell"><div class="kpi-num" style="color:var(--crimson)">' + s.gaps + '</div><div class="kpi-lbl">ክፍተት</div></div>';
+      document.getElementById("admAttTitle").value = (res.attendance && res.attendance.title) || "የእሑድ ጠቅላላ ጉባኤ";
+      document.getElementById("admAttCode").value = (res.attendance && res.attendance.code) || "OFF";
+      renderAdminList();
+    }
+  }
+
+  function switchComm(type, btn) {
+    document.querySelectorAll("#v_comm .seg button").forEach(function(b) { b.classList.remove("active"); });
+    if (btn) btn.classList.add("active");
+
+    var hdr = document.getElementById("commHeaderBox");
+    var box = document.getElementById("commList");
+    var m = STATE.me;
+    hdr.innerHTML = "";
+
+    if (type === "FAM") {
+      if (m && m.isGC) {
+        hdr.innerHTML = '<div class="sec-head" style="margin-top:4px"><span class="sec-title">የተመራቂዎች (GC-GROUP) ኅብረት</span><span class="sec-sub">' + esc(m.father) + '</span></div>';
+      } else if (m && m.famId !== "በምደባ ላይ") {
+        hdr.innerHTML =
+          '<div class="sec-head" style="margin-top:4px"><span class="sec-title">የቤተሰቡ ወላጆች (' + esc(m.famId) + ')</span></div>' +
+          '<div class="ledger" style="margin-bottom:18px">' +
+          '<div class="person-row"><div class="p-info"><div class="p-name">' + esc(m.famFatherName) + '</div><div class="p-sub">የቤተሰብ አባት</div></div>' + (m.famFatherPhone ? '<a class="call-chip" href="tel:' + esc(m.famFatherPhone) + '">' + esc(m.famFatherPhone) + '</a>' : '') + '</div>' +
+          '<div class="person-row"><div class="p-info"><div class="p-name">' + esc(m.famMotherName) + '</div><div class="p-sub">የቤተሰብ እናት</div></div>' + (m.famMotherPhone ? '<a class="call-chip" href="tel:' + esc(m.famMotherPhone) + '">' + esc(m.famMotherPhone) + '</a>' : '') + '</div>' +
+          '</div>' +
+          '<div class="sec-head" style="margin-top:4px"><span class="sec-title">የቤተሰቡ ልጆች / መጠባበቂያዎች</span><span class="sec-sub">' + (STATE.famMates ? STATE.famMates.length : 0) + ' አባላት</span></div>';
+      }
+      renderPeopleList(STATE.famMates, box, "የቤተሰብ አባላት ገና አልተመደቡም።");
+    } else if (type === "TEAM") {
+      if (m && m.isFresh) {
+        document.getElementById("commCount").textContent = "1ኛ ዓመት";
+        box.innerHTML = '<div style="padding:18px 4px;font-size:13px;color:var(--ink-soft)">የዲፓርትመንት ቲም ከ2ኛ ዓመት ጀምሮ ላሉ ነባር ተማሪዎች ነው። የ1ኛ ዓመት እና ሬሜዲያል ሞጁሎችን በ<b>«ትምህርት»</b> ክፍል ያገኛሉ።</div>';
+        return;
+      }
+      if (m && m.team && m.team !== "በምደባ ላይ") {
+        hdr.innerHTML = '<div class="sec-head" style="margin-top:4px"><span class="sec-title">' + esc(m.team) + '</span><span class="sec-sub">' + esc(m.dept) + '</span></div>';
+      }
+      renderPeopleList(STATE.teamMates, box, "የ4–5 አባላት የዲፓርትመንት ቲም ምደባ በሂደት ላይ ነው።");
+    } else {
+      renderPeopleList(STATE.dormMates, box, "በብሎክዎ የተመዘገቡ አባላት አልተገኙም።");
+    }
+  }
+
+  function renderPeopleList(list, el, emptyMsg) {
+    document.getElementById("commCount").textContent = (list ? list.length : 0) + " አባላት";
+    if (!list || list.length === 0) {
+      el.innerHTML = '<div style="padding:18px 4px;font-size:13px;color:var(--ink-soft)">' + emptyMsg + '</div>';
+      return;
+    }
+    el.innerHTML = list.map(function(x, idx) {
+      return '<div class="person-row"><div class="p-info"><div class="p-name">' + (idx + 1) + '. ' + esc(x.name) + (x.isMe ? ' <span style="color:var(--gold);font-size:11px">(እርስዎ)</span>' : '') + '</div><div class="p-sub">' + esc(x.sub) + '</div></div>' +
+        (x.phone && x.phone !== "-" ? '<a class="call-chip" href="tel:' + esc(x.phone) + '">' + esc(x.phone) + '</a>' : '') + '</div>';
+    }).join("");
+  }
+
+  function switchLearn(mode, btn) {
+    CUR_LEARN = mode;
+    document.querySelectorAll("#v_learn .seg button").forEach(function(b) { b.classList.remove("active"); });
+    if (btn) btn.classList.add("active");
+    var ctrl = document.getElementById("learnControls");
+    if (mode === "ACAD") {
+      ctrl.innerHTML = '<div class="filter-pills">' +
+        '<button class="f-pill active" onclick="filterAcad(\'ALL\',this)">ሁሉም</button>' +
+        '<button class="f-pill" onclick="filterAcad(\'NAT\',this)">Natural</button>' +
+        '<button class="f-pill" onclick="filterAcad(\'SOC\',this)">Social</button>' +
+        '<button class="f-pill" onclick="filterAcad(\'REM\',this)">ሬሜዲያል</button>' +
+        '<button class="f-pill" onclick="filterAcad(\'EXM\',this)">ያለፉ ፈተናዎች</button></div>';
+      renderAcadList("ALL");
+    } else {
+      var list = STATE.courses || [];
+      var keys = STATE.completedKeys || {};
+      var total = list.length;
+      var done = list.filter(function(c) { return keys[c.trackId + "|" + c.level]; }).length;
+      var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      document.getElementById("learnProgressLbl").textContent = total > 0 ? (done + "/" + total + " ተነቧል") : "ወቅታዊ ትምህርት";
+      ctrl.innerHTML = total > 0
+        ? '<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700"><span>የንባብ ሂደትዎ</span><span style="color:var(--gold)">' + pct + '%</span></div><div class="prog-track"><div class="prog-fill" style="width:' + pct + '%"></div></div></div>'
+        : '';
+      renderCoursesList();
+    }
+  }
+
+  function filterAcad(cat, btn) {
+    document.querySelectorAll("#learnControls .f-pill").forEach(function(b) { b.classList.remove("active"); });
+    if (btn) btn.classList.add("active");
+    renderAcadList(cat);
+  }
+
+  function renderAcadList(cat) {
+    var items = (STATE.academicItems || []).filter(function(x) { return cat === "ALL" || x.cat === cat; });
+    document.getElementById("learnProgressLbl").textContent = items.length + " መርጃዎች";
+    var box = document.getElementById("learnList");
+    if (items.length === 0) {
+      box.innerHTML = '<div style="padding:18px 4px;font-size:13px;color:var(--ink-soft)">በዚህ ዘርፍ ገና ሞጁል ወይም ፈተና አልተጫነም።</div>';
+      return;
+    }
+    box.innerHTML = items.map(function(x) {
+      return '<div class="person-row"><div class="p-info"><div class="p-name">' + esc(x.title) + '</div><div class="p-sub">' + esc(x.catName) + '</div></div><a class="call-chip" href="' + esc(x.url) + '" target="_blank">ክፈት ↗</a></div>';
+    }).join("");
+  }
+
+  function renderCoursesList() {
+    var box = document.getElementById("learnList");
+    var html = "";
+    if (STATE.featuredLesson && STATE.featuredLesson.url) {
+      html += '<div class="person-row"><div class="p-info"><div class="p-name">' + esc(STATE.featuredLesson.topic) + '</div><div class="p-sub" style="color:var(--gold)">☧ ወቅታዊ ትምህርት (Featured)</div></div><a class="call-chip" href="' + esc(STATE.featuredLesson.url) + '" target="_blank">አንብብ ↗</a></div>';
+    }
+    var list = STATE.courses || [];
+    var keys = STATE.completedKeys || {};
+    if (list.length === 0 && !html) {
+      box.innerHTML = '<div style="padding:18px 4px;font-size:13px;color:var(--ink-soft)">ገና የተለቀቀ የTelegraph ኮርስ የለም።</div>';
+      return;
+    }
+    html += list.map(function(c, idx) {
+      var key = c.trackId + "|" + c.level;
+      var isDone = Boolean(keys[key]);
+      return '<div class="person-row"><div class="p-info"><div class="p-name">' + esc(c.title) + '</div><div class="p-sub">' + esc(c.trackName) + ' • ክፍል ' + esc(c.level) + '</div></div>' +
+        '<div style="display:flex;gap:6px"><a class="call-chip" href="' + esc(c.url) + '" target="_blank">አንብብ</a>' +
+        '<button class="call-chip" style="cursor:pointer;' + (isDone ? 'background:var(--emerald);color:#fff' : '') + '" onclick="markCourseDoneByIdx(' + idx + ')">' + (isDone ? '✓' : 'ጨረስኩ') + '</button></div></div>';
+    }).join("");
+    box.innerHTML = html;
+  }
+
+  function markCourseDoneByIdx(idx) {
+    var c = (STATE.courses || [])[idx];
+    if (!c) return;
+    if (!STATE.completedKeys) STATE.completedKeys = {};
+    STATE.completedKeys[c.trackId + "|" + c.level] = true;
+    switchLearn("LMS", document.querySelectorAll("#v_learn .seg button")[1]);
+    showToast("የንባብ ሂደትዎ ተመዝግቧል!");
+    apiPost({ portalAction: "progress", uid: P_UID, phone: P_PHONE, sig: P_SIG, trackId: c.trackId, level: c.level, title: c.title })
+      .catch(function() { showToast("Offline ነዎት — ኢንተርኔት ሲኖር ድጋሚ ይሞክሩ።"); });
+  }
+
+  function setAdmFilter(f, btn) {
+    CUR_ADM_FILTER = f;
+    document.querySelectorAll("#v_admin .f-pill").forEach(function(b) { b.classList.remove("active"); });
+    if (btn) btn.classList.add("active");
+    renderAdminList();
+  }
+
+  function renderAdminList() {
+    if (!STATE.isSuperAdmin) return;
+    var q = (document.getElementById("admSearch").value || "").toLowerCase().trim();
+    var res = (STATE.allStudents || []).filter(function(s) {
+      if (CUR_ADM_FILTER === "FRESH" && !s.isFresh) return false;
+      if (CUR_ADM_FILTER === "GC" && !s.isGC) return false;
+      if (CUR_ADM_FILTER === "GAP" && !s.hasGap) return false;
+      return q === "" || s.blob.indexOf(q) >= 0;
+    });
+    document.getElementById("admCountLbl").textContent = res.length + " ውጤቶች";
+    document.getElementById("admList").innerHTML = res.slice(0, 60).map(function(s) {
+      return '<div class="person-row"><div class="p-info"><div class="p-name">' + esc(s.name) + ' <span style="font-size:11px;color:var(--gold)">' + esc(s.id) + '</span></div>' +
+        '<div class="p-sub">' + esc(s.dept) + ' • ' + esc(s.father) + ' • ' + esc(s.famId) + ' • ' + esc(s.team) + '</div></div>' +
+        '<a class="call-chip" href="tel:' + esc(s.phone) + '">' + esc(s.phone) + '</a></div>';
+    }).join("") || '<div style="padding:18px 4px;font-size:13px;color:var(--ink-soft)">ምንም አባል አልተገኘም።</div>';
+  }
+
+  function submitAttendance() {
+    var code = document.getElementById("attCodeInput").value.trim();
+    if (!code) { showToast("እባክዎ የአቴንዳንስ ኮዱን ያስገቡ።"); return; }
+    showToast("በመመዝገብ ላይ...");
+    apiPost({ portalAction: "attendance", uid: P_UID, phone: P_PHONE, sig: P_SIG, code: code })
+      .then(function(r) {
+        showToast(r.msg);
+        if (r.ok) { closeSheets(); document.getElementById("attCodeInput").value = ""; }
+      })
+      .catch(function() { showToast("አቴንዳንስ ለመመዝገብ ኢንተርኔት ያስፈልጋል።"); });
+  }
+
+  function adminSaveAttendance() {
+    var t = document.getElementById("admAttTitle").value.trim();
+    var c = document.getElementById("admAttCode").value.trim();
+    showToast("በማዘመን ላይ...");
+    apiPost({ portalAction: "toggleAtt", uid: P_UID, phone: P_PHONE, sig: P_SIG, code: c, title: t })
+      .then(function(r) {
+        showToast(r.ok ? (r.active ? "አቴንዳንስ ተከፍቷል (" + r.code + ")" : "አቴንዳንስ ተዘግቷል") : r.msg);
+        if (r.ok) {
+          STATE.attendance = { active: r.active, code: r.code, title: r.title };
+          updateAttendanceRibbon(STATE.attendance);
+        }
+      })
+      .catch(function() { showToast("ኢንተርኔት አልተገኘም።"); });
+  }
+
+  function submitInquiry() {
+    var sel = document.getElementById("askCat").value.split("|");
+    var body = document.getElementById("askBody").value.trim();
+    var anon = document.getElementById("askAnon").checked;
+    if (body.length < 4) { showToast("እባክዎ መልእክትዎን ይጻፉ።"); return; }
+    showToast("በመላክ ላይ...");
+    apiPost({ portalAction: "inquiry", uid: P_UID, phone: P_PHONE, sig: P_SIG, subType: sel[0], subCat: sel[1], bodyText: body, isAnon: anon })
+      .then(function(r) {
+        showToast(r.msg);
+        if (r.ok) { document.getElementById("askBody").value = ""; closeSheets(); }
+      })
+      .catch(function() { showToast("መልእክት ለመላክ ኢንተርኔት ያስፈልጋል።"); });
+  }
+
+  (function boot() {
+    document.getElementById("ethDateStr").textContent = getEthiopianTodayStr();
+    var hasCache = false;
+    try {
+      var savedTheme = localStorage.getItem("WKUGG_THEME");
+      if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+      var cached = localStorage.getItem(CACHE_KEY);
+      if (cached) { hydrateUI(JSON.parse(cached), true); hasCache = true; }
+    } catch (e) {}
+
+    if (!P_UID && !P_PHONE) {
+      if (!hasCache) document.getElementById("heroSub").textContent = "እባክዎ ፖርታሉን ከቴሌግራም ቦቱ (@WKUGG_19_Bot) ይክፈቱ።";
+      return;
+    }
+
+    var reqUrl = API_URL + "?action=payload&uid=" + encodeURIComponent(P_UID) + "&p=" + encodeURIComponent(P_PHONE) + "&sig=" + encodeURIComponent(P_SIG);
+    fetch(reqUrl, { method: "GET", credentials: "omit", redirect: "follow" })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res && !res.error) {
+          hydrateUI(res, false);
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify(res)); } catch (e) {}
+        } else if (!hasCache) {
+          document.getElementById("heroSub").textContent = (res && res.error) ? res.error : "መረጃ ማምጣት አልተቻለም።";
+        }
+      })
+      .catch(function() {
+        if (!hasCache) document.getElementById("heroSub").textContent = "ኢንተርኔት አልተገኘም — እባክዎ ድጋሚ ይሞክሩ።";
+      });
+  })();
+</script>
+</body>
+</html>
