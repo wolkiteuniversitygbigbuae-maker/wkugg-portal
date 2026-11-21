@@ -230,6 +230,23 @@
   .kpi-num { font-size: 19px; font-weight: 800; color: var(--ink); line-height: 1.2; }
   .kpi-lbl { font-size: 10px; color: var(--ink-soft); font-weight: 600; margin-top: 3px; }
 
+  .att-panel-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .att-field-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px;
+  }
+  .field-lbl {
+    display: block; font-size: 11px; font-weight: 700;
+    color: var(--ink-soft); margin-bottom: 5px;
+  }
+  .att-btn-row {
+    display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-top: 12px;
+  }
+  .status-open { background: rgba(14, 124, 91, 0.14); color: var(--emerald); }
+  .status-closed { background: rgba(159, 36, 59, 0.12); color: var(--crimson); }
+
   .search-input {
     width: 100%; background: var(--surface); border: 1px solid var(--line);
     color: var(--ink); padding: 12px 14px; border-radius: 12px;
@@ -494,13 +511,25 @@
     </div>
     <div id="admKpiStrip" class="kpi-bar"></div>
 
-    <div class="ledger adm-att-panel" style="padding:14px 16px;margin-bottom:16px">
-      <div style="font-size:11.5px;font-weight:800;color:var(--gold);margin-bottom:8px">የጉባኤ አቴንዳንስ መቆጣጠሪያ</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <input id="admAttTitle" class="search-input" style="margin:0" placeholder="የመርሐ ግብር ስም">
-        <input id="admAttCode" class="search-input" style="margin:0" placeholder="ኮድ (WKU19 / OFF)">
+    <div class="ledger adm-att-panel" style="padding:16px;margin-bottom:16px">
+      <div class="att-panel-head">
+        <span style="font-size:11.5px;font-weight:800;color:var(--gold)">የጉባኤ አቴንዳንስ መቆጣጠሪያ</span>
+        <span id="admAttStatus" class="status-dot status-closed">ዝግ ነው (OFF)</span>
       </div>
-      <button class="btn-primary" onclick="adminSaveAttendance()">አቴንዳንስ ክፈት / ዝጋ</button>
+      <div class="att-field-grid">
+        <div>
+          <label for="admAttTitle" class="field-lbl">1. የመርሐ ግብሩ ስም</label>
+          <input id="admAttTitle" class="search-input" style="margin:0" placeholder="ለምሳሌ፦ የአርብ መሐረነአብ ጉባኤ">
+        </div>
+        <div>
+          <label for="admAttCode" class="field-lbl">2. የሚስጥር ኮድ (ለተማሪዎች)</label>
+          <input id="admAttCode" class="search-input" style="margin:0;text-transform:uppercase;font-weight:700" placeholder="ለምሳሌ፦ WKU19">
+        </div>
+      </div>
+      <div class="att-btn-row">
+        <button class="btn-primary" style="margin:0" onclick="adminSaveAttendance()">አቴንዳንስ ክፈት</button>
+        <button class="btn-outline" style="margin:0;color:var(--crimson);border-color:var(--crimson)" onclick="adminCloseAttendance()">ዝጋ (OFF)</button>
+      </div>
     </div>
 
     <input id="admSearch" class="search-input" placeholder="ስም፣ ስልክ፣ WKU-GG ID፣ ንስሐ አባት፣ ቤተሰብ ወይም ብሎክ/ዶርም..." oninput="renderAdminList()">
@@ -672,13 +701,22 @@
 
   function updateAttendanceRibbon(att) {
     var rib = document.getElementById("attRibbon");
+    var badge = document.getElementById("admAttStatus");
     if (att && att.active) {
       rib.style.display = "flex";
       document.getElementById("attRibbonTitle").textContent = (att.title || "የጉባኤ አቴንዳንስ") + " — አቴንዳንስ ክፍት ነው";
       document.getElementById("attSheetTitle").textContent = att.title || "የጉባኤ ዲጂታል አቴንዳንስ";
+      if (badge) {
+        badge.textContent = "ክፍት ነው • " + (att.code || "");
+        badge.className = "status-dot status-open";
+      }
     } else {
       rib.style.display = "none";
       document.getElementById("attSheetTitle").textContent = "የጉባኤ ዲጂታል አቴንዳንስ";
+      if (badge) {
+        badge.textContent = "ዝግ ነው (OFF)";
+        badge.className = "status-dot status-closed";
+      }
     }
   }
 
@@ -751,8 +789,10 @@
         '<div class="kpi-cell"><div class="kpi-num">' + s.botUsers + '</div><div class="kpi-lbl">ቦት ላይ</div></div>' +
         '<div class="kpi-cell"><div class="kpi-num">' + s.gc + '</div><div class="kpi-lbl">ተመራቂ</div></div>' +
         '<div class="kpi-cell"><div class="kpi-num" style="color:var(--crimson)">' + s.gaps + '</div><div class="kpi-lbl">ክፍተት</div></div>';
-      document.getElementById("admAttTitle").value = (res.attendance && res.attendance.title) || "የእሑድ ጠቅላላ ጉባኤ";
-      document.getElementById("admAttCode").value = (res.attendance && res.attendance.code) || "OFF";
+      var savedTitle = (res.attendance && res.attendance.title && res.attendance.title !== "ሁሉም (ALL)") ? res.attendance.title : "የእሑድ ጠቅላላ ጉባኤ";
+      var savedCode = (res.attendance && res.attendance.active && res.attendance.code && res.attendance.code.toUpperCase() !== "OFF") ? res.attendance.code : "";
+      document.getElementById("admAttTitle").value = savedTitle;
+      document.getElementById("admAttCode").value = savedCode;
       renderAdminList();
     }
   }
@@ -924,12 +964,31 @@
   function adminSaveAttendance() {
     var t = document.getElementById("admAttTitle").value.trim();
     var c = document.getElementById("admAttCode").value.trim();
-    showToast("በማዘመን ላይ...");
-    apiPost({ portalAction: "toggleAtt", uid: P_UID, phone: P_PHONE, sig: P_SIG, code: c, title: t })
+    if (!c || c.toUpperCase() === "OFF") {
+      showToast("እባክዎ የሚስጥር ኮድ ያስገቡ (ለምሳሌ WKU19)");
+      return;
+    }
+    showToast("በመክፈት ላይ...");
+    apiPost({ portalAction: "toggleAtt", uid: P_UID, phone: P_PHONE, sig: P_SIG, code: c, title: t || "የጉባኤ አቴንዳንስ" })
       .then(function(r) {
-        showToast(r.ok ? (r.active ? "አቴንዳንስ ተከፍቷል (" + r.code + ")" : "አቴንዳንስ ተዘግቷል") : r.msg);
+        showToast(r.ok ? "አቴንዳንስ ተከፍቷል — ኮድ፦ " + r.code : r.msg);
         if (r.ok) {
           STATE.attendance = { active: r.active, code: r.code, title: r.title };
+          updateAttendanceRibbon(STATE.attendance);
+        }
+      })
+      .catch(function() { showToast("ኢንተርኔት አልተገኘም።"); });
+  }
+
+  function adminCloseAttendance() {
+    var t = document.getElementById("admAttTitle").value.trim();
+    document.getElementById("admAttCode").value = "";
+    showToast("በመዝጋት ላይ...");
+    apiPost({ portalAction: "toggleAtt", uid: P_UID, phone: P_PHONE, sig: P_SIG, code: "OFF", title: t || "የእሑድ ጠቅላላ ጉባኤ" })
+      .then(function(r) {
+        showToast(r.ok ? "አቴንዳንስ ተዘግቷል (OFF)" : r.msg);
+        if (r.ok) {
+          STATE.attendance = { active: false, code: "OFF", title: r.title };
           updateAttendanceRibbon(STATE.attendance);
         }
       })
