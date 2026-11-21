@@ -4,7 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#0B1D3A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WKU-GG">
 <title>ወልቂጤ ዩኒቨርሲቲ ግቢ ጉባኤ — ዲጂታል ፖርታል</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="logo.jpg" type="image/jpeg">
+<link rel="apple-touch-icon" href="logo.jpg">
 <style>
   :root {
     --bg: #F7F5F0;
@@ -317,6 +324,7 @@
     position: fixed; top: 68px; left: 50%; transform: translateX(-50%);
     background: var(--navy); color: #fff; padding: 10px 18px; border-radius: 99px;
     font-size: 12px; font-weight: 700; z-index: 80; display: none; white-space: nowrap;
+    max-width: calc(100% - 28px); overflow: hidden; text-overflow: ellipsis;
     border: 1px solid var(--gold-light); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
   }
   .toggle-row { display: flex; align-items: center; justify-content: space-between; margin: 10px 0; font-size: 12.5px; font-weight: 600; }
@@ -460,9 +468,9 @@
         <span class="q-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
         <span>አቴንዳንስ</span>
       </button>
-      <button class="q-pill" onclick="saveOfflineSnapshot()">
-        <span class="q-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg></span>
-        <span>Offline</span>
+      <button class="q-pill" onclick="installToHomeScreen()">
+        <span class="q-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+        <span id="installBtnLbl">App ጫን</span>
       </button>
     </div>
 
@@ -616,9 +624,28 @@
   var P_PHONE = (qs.get("p") || qs.get("phone") || "").replace(/\D/g, "").slice(-9);
   var P_SIG = (qs.get("sig") || "").trim();
 
+  var AUTH_KEY = "WKUGG_SAVED_SESSION_V1";
+  try {
+    if (P_UID && P_SIG) {
+      localStorage.setItem(AUTH_KEY, JSON.stringify({ uid: P_UID, phone: P_PHONE, sig: P_SIG }));
+    } else {
+      var savedAuth = JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
+      if (savedAuth && savedAuth.uid && savedAuth.sig) {
+        P_UID = savedAuth.uid;
+        P_PHONE = savedAuth.phone || "";
+        P_SIG = savedAuth.sig;
+      }
+    }
+  } catch (e) {}
+
   var CACHE_KEY = "WKUGG_STANDALONE_V1_" + (P_UID || P_PHONE);
   var STATE = { me: null, famMates: [], teamMates: [], dormMates: [], courses: [], completedKeys: {}, academicItems: [], featuredLesson: null, attendance: {}, allStudents: [], isSuperAdmin: false };
   var CUR_LEARN = "ACAD", CUR_ADM_FILTER = "ALL";
+  var DEFERRED_INSTALL = null;
+
+  function isRunningStandalone() {
+    return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+  }
 
   function apiPost(payloadObj) {
     return fetch(API_URL, {
@@ -653,7 +680,7 @@
   function showToast(msg) {
     var t = document.getElementById("toast");
     t.textContent = msg; t.style.display = "block";
-    setTimeout(function() { t.style.display = "none"; }, 3000);
+    setTimeout(function() { t.style.display = "none"; }, 3200);
   }
 
   function copyFromEl(el) {
@@ -682,18 +709,38 @@
   function openSheet(id) { document.getElementById(id).classList.add("open"); }
   function closeSheets() { document.querySelectorAll(".sheet-backdrop").forEach(function(s) { s.classList.remove("open"); }); }
 
-  function saveOfflineSnapshot() {
+  function saveOfflineSnapshot(silent) {
     try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(STATE));
-      showToast("መታወቂያዎ እና መረጃዎ ለOffline ተቀምጧል!");
-    } catch (e) { showToast("ማስቀመጥ አልተቻለም።"); }
+      if (STATE && STATE.me) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(STATE));
+        if (!silent) showToast("መታወቂያዎ እና መረጃዎ ለOffline ተቀምጧል!");
+      }
+    } catch (e) {
+      if (!silent) showToast("ማስቀመጥ አልተቻለም።");
+    }
+  }
+
+  function installToHomeScreen() {
+    saveOfflineSnapshot(true);
+    if (isRunningStandalone()) {
+      showToast("መታወቂያዎ እና መረጃዎ ለOffline ታድሷል!");
+      return;
+    }
+    if (DEFERRED_INSTALL) {
+      DEFERRED_INSTALL.prompt();
+      DEFERRED_INSTALL.userChoice.then(function() { DEFERRED_INSTALL = null; });
+    } else if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+      showToast("ከታች Share ነክተው «Add to Home Screen» ይበሉ!");
+    } else {
+      showToast("ከላይ ⋮ ነክተው «Add to Home screen» ይበሉ!");
+    }
   }
 
   function applyOfficialLogo(src) {
-    if (!src) return;
+    var finalSrc = src || "./logo.jpg";
     ["idCardLogo", "idCardLogoBack", "topLogoImg"].forEach(function(id) {
       var el = document.getElementById(id);
-      if (el) { el.src = src; el.style.display = "block"; }
+      if (el) { el.src = finalSrc; el.style.display = "block"; }
     });
     var fb = document.getElementById("topLogoFallback");
     if (fb) fb.style.display = "none";
@@ -1009,8 +1056,23 @@
       .catch(function() { showToast("መልእክት ለመላክ ኢንተርኔት ያስፈልጋል።"); });
   }
 
+  window.addEventListener("beforeinstallprompt", function(e) {
+    e.preventDefault();
+    DEFERRED_INSTALL = e;
+  });
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function() {
+      navigator.serviceWorker.register("./sw.js").catch(function() {});
+    });
+  }
+
   (function boot() {
     document.getElementById("ethDateStr").textContent = getEthiopianTodayStr();
+    if (isRunningStandalone()) {
+      var lbl = document.getElementById("installBtnLbl");
+      if (lbl) lbl.textContent = "Offline";
+    }
     var hasCache = false;
     try {
       var savedTheme = localStorage.getItem("WKUGG_THEME");
